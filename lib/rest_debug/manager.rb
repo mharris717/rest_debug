@@ -39,6 +39,20 @@ EOF
       `kill #{client.pid}`
     end
 
+    def command(command)
+      parts = command.to_s.split(" ")
+      if parts[0] == 'break'
+        file,line = *parts[1].split(":")
+        if file == 'file'
+          file = server.tmp_filename
+          line = line.to_i + 5
+          command = "break #{file}:#{line}"
+          puts "new command: #{command}"
+        end
+      end
+      client.write "#{command}\n"
+    end
+
     class << self
       def make(code)
         res = RestDebug::Manager.new(:code => code)

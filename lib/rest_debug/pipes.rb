@@ -7,10 +7,13 @@ class RubyPipe
   def full_code
     "#{code}\n#{end_code}"
   end
+
+  fattr(:tmp_filename) do
+    File.expand_path(File.dirname(__FILE__) + "/../../tmp/debug_code_#{rand(1000000000)}.rb")
+  end
   fattr(:pipe) do
-    file = File.expand_path(File.dirname(__FILE__) + "/../../tmp/debug_code_#{rand(1000000000)}.rb")
-    File.create file,full_code
-    res = IO.popen("ruby #{file}", "r+")
+    File.create tmp_filename,full_code
+    res = IO.popen("ruby #{tmp_filename}", "r+")
     MyPipe.new(res)
   end
 

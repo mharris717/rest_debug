@@ -17,8 +17,8 @@ get "/status" do
 end
 
 get "/command" do
-  command = params[:command].strip + "\n"
-  manager.client.write command
+  command = params[:command].strip
+  manager.command command
   10.times { sleep(0.05) }
   {:output => manager.client.read}.to_json
 end
