@@ -14,12 +14,13 @@ end
 class DebugManager
   include FromHash
   attr_accessor :code
+  fattr(:port) { 9595 }
   
   def debug_code
     str = <<EOF
     require 'debugger'
     Debugger.wait_connection = true
-    Debugger.start_remote
+    Debugger.start_remote nil, #{port}
     debugger
 EOF
   end
@@ -33,17 +34,23 @@ EOF
   end
 
   fattr(:client) do
-    IO.popen("/code/orig/debugger/bin/rdebug -c && echo 'xxDONExx'", "r+")
+    res = IO.popen("/code/orig/debugger/bin/rdebug -c -p #{port} && echo 'xxDONExx'", "r+")
+    MyPipe.new(res).tap { |x| x.done_str = "xxDONExx" }
   end
 
   def to_output
-    {:client => client.read_available, :server => server.read}
+    {:client => client.read_all, :server => server.read_all}
+  end
+
+  def close
+    `kill #{server.pid}`
+    `kill #{client.pid}`
   end
 
   def do_client
     loop do
       sleep(0.5)
-      res = client.read_available
+      res = client.read
       puts res
       return if res =~ /xxDONExx/
       puts "ENTER: "
@@ -66,31 +73,53 @@ class RubyPipe
   def full_code
     "#{code}\n#{end_code}"
   end
-  fattr(:read_cache) { "" }
   fattr(:pipe) do
     File.create "debug_code.rb",full_code
-    IO.popen("ruby debug_code.rb", "r+")
+    res = IO.popen("ruby debug_code.rb", "r+")
+    MyPipe.new(res)
   end
-  def read
-    res = pipe.read_available
-    self.read_cache << res
-    res.gsub("<<DONE>>","")
-  end
-  def done?
-    read_cache =~ /<<DONE>>/
-  end
-  def open?
-    !done?
+
+  ["read","closed?","open?","read_all","write","close","pid"].each do |method|
+    define_method(method) { pipe.send(method) }
   end
 end
 
-def thing
-  $thing ||= begin
-    code = ["puts 'hello'","puts 'goodbye'"].join("\n")
-    res = DebugManager.new(:code => code)
-    res.server
-    res.client
+class MyPipe
+  attr_accessor :pipe
+  def initialize(pipe)
+    @pipe = pipe
+  end
+  fattr(:done_str) { "<<DONE>>" }
+
+  fattr(:read_cache) { "" }
+  def read
+    res = pipe.read_available
+    self.read_cache << res
+    res.gsub(done_str,"")
+  end
+  def closed?
+    read_cache =~ /#{done_str}/
+  end
+  def open?
+    !closed?
+  end
+
+  def read_all
+    read
+    res = read_cache
+    res << "\n(CLOSED)" if closed?
     res
+  end
+
+  def write(*args)
+    pipe.write(*args)
+  end
+  def close
+    read
+    pipe.close
+  end
+  def pid
+    pipe.pid
   end
 end
 
@@ -104,7 +133,25 @@ def stuff
 end
 
 require 'sinatra'
-thing
+
+def set_code(code)
+  $thing.close if $thing
+  $thing = DebugManager.new(:code => code)
+  $thing.server
+  $thing.client
+  20.times do
+    sleep 0.1
+    if $thing.client.read_all.present?
+      puts "Server: #{$thing.server.pid}"
+      puts "Client: #{$thing.client.pid}"
+      return
+    end
+  end
+  raise 'no output'
+end
+def thing
+  $thing
+end
 
 get "/" do
   @output = thing.to_output
@@ -117,5 +164,13 @@ get "/command" do
   thing.client.write command
 end
 
+get "/start" do
+  code = params[:code].strip
+  set_code code
+  Time.now.to_s
+end
 
-#IO.popen("/code/orig/debugger/bin/rdebug -c","r+") do |pipe|
+get "/close" do
+  thing.close
+  "done"
+end
