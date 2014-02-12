@@ -22,7 +22,7 @@ EOF
     end
 
     fattr(:client) do
-      res = IO.popen("/code/orig/debugger/bin/rdebug -c -p #{port} && echo 'xxDONExx'", "r+")
+      res = IO.popen("rdebug -c -p #{port} && echo 'xxDONExx'", "r+")
       MyPipe.new(res).tap { |x| x.done_str = "xxDONExx" }
     end
 
