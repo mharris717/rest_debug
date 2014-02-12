@@ -47,3 +47,7 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
+
+task :web do
+  exec "bundle exec ruby lib/rest_debug/web/web.rb -p 7000"
+end
