@@ -1,0 +1,5 @@
+= @output.inspect
+
+- @output.each do |type,str|
+  %h2= type
+  = str.gsub("\n","<br>")
