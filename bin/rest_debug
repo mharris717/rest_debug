@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+file = File.dirname(__FILE__) + "/../lib/rest_debug/web/web.rb"
+port = ARGV[1] || '7000'
+exec "ruby #{file} -p #{port}"
