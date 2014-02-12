@@ -38,5 +38,22 @@ EOF
       `kill #{server.pid}`
       `kill #{client.pid}`
     end
+
+    class << self
+      def make(code)
+        res = RestDebug::Manager.new(:code => code)
+        res.server
+        res.client
+        20.times do
+          sleep 0.1
+          if res.client.read_all.present?
+            puts "Server: #{res.server.pid}"
+            puts "Client: #{res.client.pid}"
+            return res
+          end
+        end
+        raise 'no output'
+      end
+    end
   end
 end

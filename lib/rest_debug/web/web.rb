@@ -3,19 +3,10 @@ load File.dirname(__FILE__) + "/../../rest_debug.rb"
 
 def set_code(code)
   $manager.close if $manager
-  $manager = RestDebug::Manager.new(:code => code)
-  $manager.server
-  $manager.client
-  20.times do
-    sleep 0.1
-    if $manager.client.read_all.present?
-      puts "Server: #{$manager.server.pid}"
-      puts "Client: #{$manager.client.pid}"
-      return
-    end
-  end
-  raise 'no output'
+  $manager = RestDebug::Manager.make(code)
 end
+
+
 def manager
   $manager
 end
