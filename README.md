@@ -17,3 +17,42 @@ Description goes here.
 Copyright (c) 2014 Mike Harris. See LICENSE.txt for
 further details.
 
+# RestDebug
+
+To start a server and client:
+
+Install rest_debug
+
+```
+gem install rest_debug
+```
+
+Start the server
+
+```
+rest_debug -p 7000
+```
+
+Start the client
+
+```
+require 'rest_debug'
+client = RestDebug::Client.new(:base_url => "http://localhost:7000")
+client.start "puts :abc"
+client.status
+client.command :continue
+client.status
+```
+
+This library is intended to be used with Ember.js and the 
+[ember-auth-easy](http://github.com/mharris717/ember-auth-easy) javascript library.
+
+It adds token authentication to your Rails app (thanks Devise!).
+
+## Adding EAR to your Rails app.
+
+* Add ember_auth_rails to your gemfile
+
+```
+gem 'ember_auth_rails'
+```

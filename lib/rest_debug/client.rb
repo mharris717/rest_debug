@@ -15,7 +15,6 @@ module RestDebug
       puts url
       raw = open(url).read
       res = JSON.parse(raw)
-      puts res.inspect
       sleep(0.05)
       res
     end
@@ -25,7 +24,13 @@ module RestDebug
     end
 
     def status
-      get :status
+      res = get :status
+      res.each do |type,data|
+        puts "#{type.to_s.upcase} (#{data['open'] ? 'Open' : 'Closed'}):"
+        puts data['output']
+        puts "\n\n"
+      end
+      res
     end
 
     def start(code)
