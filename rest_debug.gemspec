@@ -5,13 +5,14 @@
 
 Gem::Specification.new do |s|
   s.name = "rest_debug"
-  s.version = "0.0.1"
+  s.version = "0.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Mike Harris"]
   s.date = "2014-02-12"
   s.description = "rest_debug"
   s.email = "mharris717@gmail.com"
+  s.executables = ["rest_debug"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -25,6 +26,7 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "Rakefile",
     "VERSION",
+    "bin/rest_debug",
     "lib/rest_debug.rb",
     "lib/rest_debug/client.rb",
     "lib/rest_debug/ext.rb",
